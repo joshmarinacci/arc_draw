@@ -67,6 +67,17 @@ class Buffer {
     document.body.removeChild(a)
   }
 
+  export_json() {
+    let data = JSON.stringify(this)
+    console.log('data',btoa(data))
+    const a = document.createElement('a')
+    a.href ='data:application/json;base64,'+btoa(data)
+    a.download = 'image.json'
+    document.body.appendChild(a)
+    a.click()
+    document.body.removeChild(a)
+  }
+
   draw(canvas, scale, draw_grid) {
     let c = canvas.getContext('2d')
     c.fillStyle = 'white'
@@ -182,6 +193,7 @@ const BufferEditor = ({width, height, initialZoom}) => {
       <button onClick={()=>set_draw_grid(!draw_grid)}>grid</button>
       <button onClick={()=>buffer.persist()}>persist</button>
       <button onClick={()=>buffer.export_png(30)}>export 30</button>
+      <button onClick={()=>buffer.export_json()}>export JSON</button>
     </VBox>
     <canvas className={"drawing-surface"} ref={ref} width={width} height={height} onClick={handle_click}  />
   </HBox>
