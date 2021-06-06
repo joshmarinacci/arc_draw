@@ -48,6 +48,10 @@ class Buffer {
     }
   }
 
+  clear() {
+    this.data.fill(0)
+    return this.clone()
+  }
   persist() {
     localStorage.setItem(LATEST_BUFFER_KEY,JSON.stringify(this))
   }
@@ -137,6 +141,14 @@ class Buffer {
       c.lineTo(x*scale+scale,y*scale)
       c.fill()
     }
+    if(v === 5) {
+      c.fillStyle = 'black'
+      c.moveTo(x*scale,y*scale)
+      c.lineTo(x*scale+scale,y*scale)
+      c.lineTo(x*scale+scale,y*scale+scale)
+      c.lineTo(x*scale,y*scale+scale)
+      c.fill()
+    }
   }
 
   draw_grid(c, scale) {
@@ -179,7 +191,7 @@ const BufferEditor = ({width, height, initialZoom}) => {
     pt.x = Math.floor(pt.x/scale)
     pt.y = Math.floor(pt.y/scale)
     let v = buffer.getPixel(pt)
-    v = (v + 1) %5
+    v = (v + 1) %6
     set_buffer(buffer.setPixel(pt,v))
   }
   useEffect(()=>{
@@ -191,6 +203,7 @@ const BufferEditor = ({width, height, initialZoom}) => {
       <button onClick={()=>set_zoom(zoom+1)}>zoom in</button>
       <button onClick={()=>set_zoom(zoom-1)}>zoom out</button>
       <button onClick={()=>set_draw_grid(!draw_grid)}>grid</button>
+      <button onClick={()=>set_buffer(buffer.clear())}>clear</button>
       <button onClick={()=>buffer.persist()}>persist</button>
       <button onClick={()=>buffer.export_png(30)}>export 30</button>
       <button onClick={()=>buffer.export_json()}>export JSON</button>
