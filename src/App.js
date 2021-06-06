@@ -12,6 +12,7 @@ export const FillBox = ({children}) => {
   return <div className={"fillbox"}>{children}</div>
 }
 
+const LATEST_BUFFER_KEY = "LATEST_BUFFER_KEY"
 class Buffer {
   constructor(w,h) {
     this.width = w
@@ -32,6 +33,23 @@ class Buffer {
     let buf = new Buffer(this.width,this.height)
     buf.data = this.data
     return buf
+  }
+  restore() {
+    const res = localStorage.getItem(LATEST_BUFFER_KEY)
+    try {
+      if (res) {
+        let obj = JSON.parse(res)
+        this.width = obj.width
+        this.height = obj.height
+        this.data = obj.data
+      }
+    } catch(e) {
+      console.log(e)
+    }
+  }
+
+  persist() {
+    localStorage.setItem(LATEST_BUFFER_KEY,JSON.stringify(this))
   }
   draw(canvas, scale, draw_grid) {
     let c = canvas.getContext('2d')
@@ -112,7 +130,11 @@ class Buffer {
 
 const BufferEditor = ({width, height, initialZoom}) => {
   let ref = useRef()
-  let [buffer, set_buffer] = useState(new Buffer(16,16))
+  let [buffer, set_buffer] = useState(()=>{
+    let buf = new Buffer(16,16)
+    buf.restore()
+    return buf
+  })
   let [zoom, set_zoom] = useState(initialZoom)
   let [draw_grid, set_draw_grid] = useState(true)
 
@@ -135,13 +157,10 @@ const BufferEditor = ({width, height, initialZoom}) => {
   },[ref,buffer,zoom, draw_grid])
   return <HBox>
     <VBox>
-      <button onClick={()=>{
-        set_zoom(zoom+1)
-      }}>zoom in</button>
-      <button onClick={()=>{
-        set_zoom(zoom-1)
-      }}>zoom out</button>
+      <button onClick={()=>set_zoom(zoom+1)}>zoom in</button>
+      <button onClick={()=>set_zoom(zoom-1)}>zoom out</button>
       <button onClick={()=>set_draw_grid(!draw_grid)}>grid</button>
+      <button onClick={()=>buffer.persist()}>persist</button>
     </VBox>
     <canvas className={"drawing-surface"} ref={ref} width={width} height={height} onClick={handle_click}  />
   </HBox>
