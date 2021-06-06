@@ -33,7 +33,7 @@ class Buffer {
     buf.data = this.data
     return buf
   }
-  draw(canvas) {
+  draw(canvas, scale) {
     let c = canvas.getContext('2d')
     c.fillStyle = 'white'
     c.fillRect(0,0,canvas.width,canvas.height)
@@ -42,18 +42,20 @@ class Buffer {
         let v = this.getPixel({x:x,y:y})
         let color = 'white'
         if(v === 1) color = 'black'
+        if(v === 2) color = 'red'
         c.fillStyle = color
-        c.fillRect(x*8,y*8,8,8)
+        c.fillRect(x*scale,y*scale,scale,scale)
       }
     }
+    c.strokeStyle = 'black'
+    c.strokeRect(0,0,this.width*scale,this.height*scale)
   }
 }
 
-
-function App() {
+const BufferEditor = ({width, height}) => {
   let ref = useRef()
   let [buffer, set_buffer] = useState(new Buffer(16,16))
-  let zoom = 8
+  let [zoom, set_zoom] = useState(1)
 
   function handle_click(e) {
     let off = e.target.getBoundingClientRect()
@@ -61,19 +63,34 @@ function App() {
       x:e.clientX - off.x,
       y:e.clientY - off.y
     }
-    pt.x = Math.floor(pt.x/zoom)
-    pt.y = Math.floor(pt.y/zoom)
-    set_buffer(buffer.setPixel(pt,1))
+    let scale = Math.pow(2,zoom)
+    pt.x = Math.floor(pt.x/scale)
+    pt.y = Math.floor(pt.y/scale)
+    let v = buffer.getPixel(pt)
+    v = (v + 1) %3
+    set_buffer(buffer.setPixel(pt,v))
   }
   useEffect(()=>{
-    if (ref.current) buffer.draw(ref.current)
-  },[ref,buffer])
+    let scale = Math.pow(2,zoom)
+    if (ref.current) buffer.draw(ref.current,scale)
+  },[ref,buffer,zoom])
   return <HBox>
-    <canvas className={"drawing-surface"} ref={ref} width={16*8} height={16*8}
-            onClick={handle_click}
-            // onMouseDown={mouse_down}
-            // onMouseUp={mouse_up}
-    />
+    <VBox>
+      <button onClick={()=>{
+        set_zoom(zoom+1)
+      }}>zoom in</button>
+      <button onClick={()=>{
+        set_zoom(zoom-1)
+      }}>zoom out</button>
+    </VBox>
+    <canvas className={"drawing-surface"} ref={ref} width={width} height={height} onClick={handle_click}  />
+  </HBox>
+}
+
+function App() {
+
+  return <HBox>
+    <BufferEditor width={1280} height={768}/>
   </HBox>
 }
 
