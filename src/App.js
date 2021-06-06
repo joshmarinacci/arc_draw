@@ -32,6 +32,7 @@ class Buffer {
   clone() {
     let buf = new Buffer(this.width,this.height)
     buf.data = this.data
+    buf.persist()
     return buf
   }
   restore() {
@@ -53,11 +54,12 @@ class Buffer {
     return this.clone()
   }
   persist() {
+    console.log("saving")
     localStorage.setItem(LATEST_BUFFER_KEY,JSON.stringify(this))
   }
 
   export_png(scale) {
-    console.log("exporting at scale",scale)
+    // console.log("exporting at scale",scale)
     let canvas = document.createElement("canvas")
     canvas.width = this.width*scale
     canvas.height = this.height*scale
@@ -207,6 +209,7 @@ const BufferEditor = ({width, height, initialZoom}) => {
       <button onClick={()=>buffer.persist()}>persist</button>
       <button onClick={()=>buffer.export_png(30)}>export 30</button>
       <button onClick={()=>buffer.export_json()}>export JSON</button>
+      <button onClick={()=>set_buffer(buffer.shift(0,1))}>shift down</button>
     </VBox>
     <canvas className={"drawing-surface"} ref={ref} width={width} height={height} onClick={handle_click}  />
   </HBox>
