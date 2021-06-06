@@ -51,6 +51,22 @@ class Buffer {
   persist() {
     localStorage.setItem(LATEST_BUFFER_KEY,JSON.stringify(this))
   }
+
+  export_png(scale) {
+    console.log("exporting at scale",scale)
+    let canvas = document.createElement("canvas")
+    canvas.width = this.width*scale
+    canvas.height = this.height*scale
+    this.draw(canvas,scale,false)
+    let url = canvas.toDataURL("png")
+    const a = document.createElement('a')
+    a.href = url
+    a.download = 'image.png'
+    document.body.appendChild(a)
+    a.click()
+    document.body.removeChild(a)
+  }
+
   draw(canvas, scale, draw_grid) {
     let c = canvas.getContext('2d')
     c.fillStyle = 'white'
@@ -128,6 +144,10 @@ class Buffer {
   }
 }
 
+function zoom_to_scale(zoom) {
+  return Math.pow(1.5,zoom)
+}
+
 const BufferEditor = ({width, height, initialZoom}) => {
   let ref = useRef()
   let [buffer, set_buffer] = useState(()=>{
@@ -144,7 +164,7 @@ const BufferEditor = ({width, height, initialZoom}) => {
       x:e.clientX - off.x,
       y:e.clientY - off.y
     }
-    let scale = Math.pow(2,zoom)
+    let scale = zoom_to_scale(zoom)
     pt.x = Math.floor(pt.x/scale)
     pt.y = Math.floor(pt.y/scale)
     let v = buffer.getPixel(pt)
@@ -152,7 +172,7 @@ const BufferEditor = ({width, height, initialZoom}) => {
     set_buffer(buffer.setPixel(pt,v))
   }
   useEffect(()=>{
-    let scale = Math.pow(2,zoom)
+    let scale = zoom_to_scale(zoom)
     if (ref.current) buffer.draw(ref.current,scale,draw_grid)
   },[ref,buffer,zoom, draw_grid])
   return <HBox>
@@ -161,6 +181,7 @@ const BufferEditor = ({width, height, initialZoom}) => {
       <button onClick={()=>set_zoom(zoom-1)}>zoom out</button>
       <button onClick={()=>set_draw_grid(!draw_grid)}>grid</button>
       <button onClick={()=>buffer.persist()}>persist</button>
+      <button onClick={()=>buffer.export_png(30)}>export 30</button>
     </VBox>
     <canvas className={"drawing-surface"} ref={ref} width={width} height={height} onClick={handle_click}  />
   </HBox>
