@@ -16,7 +16,19 @@ export const BufferEditor = ({width, height, initialZoom}) => {
     })
     let [zoom, set_zoom] = useState(initialZoom)
     let [draw_grid, set_draw_grid] = useState(true)
+    let [dragging, set_dragging] = useState(false)
 
+    function to_point(e) {
+        let off = e.target.getBoundingClientRect()
+        let pt = {
+            x: e.clientX - off.x,
+            y: e.clientY - off.y
+        }
+        let scale = zoom_to_scale(zoom)
+        pt.x = Math.floor(pt.x / scale)
+        pt.y = Math.floor(pt.y / scale)
+        return pt
+    }
     function handle_click(e) {
         let off = e.target.getBoundingClientRect()
         let pt = {
@@ -30,6 +42,26 @@ export const BufferEditor = ({width, height, initialZoom}) => {
         v = (v + 1) % 6
         set_buffer(buffer.setPixel(pt, v))
     }
+
+    let [drag_value, set_drag_value] = useState(0)
+    function handle_down(e) {
+        set_dragging(true)
+        let pt = to_point(e)
+        let v = buffer.getPixel(pt)
+        v = (v+1)%6
+        set_buffer(buffer.setPixel(pt,v))
+        set_drag_value(v)
+    }
+    function handle_move(e) {
+        if(dragging) {
+            let pt = to_point(e)
+            set_buffer(buffer.setPixel(pt,drag_value))
+        }
+    }
+    function handle_up(e) {
+        set_dragging(false)
+    }
+
 
     useEffect(() => {
         let scale = zoom_to_scale(zoom)
@@ -54,6 +86,10 @@ export const BufferEditor = ({width, height, initialZoom}) => {
                                onChange={(c) => set_buffer(buffer.set_bg_color(c.hsl))}/>
         </VBox>
         <canvas className={"drawing-surface"} ref={ref} width={width} height={height}
-                onClick={handle_click}/>
+                // onClick={handle_click}
+                onMouseDown={handle_down}
+                onMouseMove={handle_move}
+                onMouseUp={handle_up}
+        />
     </HBox>
 }

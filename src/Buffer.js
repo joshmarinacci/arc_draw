@@ -27,6 +27,7 @@ export class Buffer {
         if (pt.y >= this.height) return this
 
         let n = pt.y * this.width + pt.x
+        if(this.data[n] === value) return this
         this.data[n] = value
         return this.clone()
     }
