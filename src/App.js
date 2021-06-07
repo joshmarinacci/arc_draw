@@ -53,8 +53,23 @@ class Buffer {
     this.data.fill(0)
     return this.clone()
   }
+
+  shift(dx,dy) {
+    let data = this.data.slice()
+    for(let x=0; x<this.width; x++) {
+      for(let y=0; y<this.height; y++) {
+        let n1 = this.width*y + x
+        let v = this.data[n1]
+        let n2 = this.width*((y+dy)%this.height) + ((x+dx)%this.width)
+        data[n2] = v
+      }
+    }
+    let buf = new Buffer(this.width,this.height)
+    buf.data = data
+    buf.persist()
+    return buf
+  }
   persist() {
-    console.log("saving")
     localStorage.setItem(LATEST_BUFFER_KEY,JSON.stringify(this))
   }
 
