@@ -25,6 +25,11 @@ class Buffer {
       s:0.5,
       l:0.5,
     }
+    this.bgcolor = {
+      h:0.2,
+      s:0.0,
+      l:1.0,
+    }
   }
   setPixel(pt, value) {
     if(pt.x < 0) return this
@@ -44,6 +49,7 @@ class Buffer {
     let buf = new Buffer(this.width,this.height)
     buf.data = this.data
     buf.fgcolor = this.fgcolor
+    buf.bgcolor = this.bgcolor
     buf.persist()
     return buf
   }
@@ -71,6 +77,11 @@ class Buffer {
     buf.fgcolor = c
     return buf
   }
+  set_bg_color(c) {
+    let buf = this.clone()
+    buf.bgcolor = c
+    return buf
+  }
 
   shift(dx,dy) {
     const wrap = (v, max) => {
@@ -92,6 +103,7 @@ class Buffer {
     }
     let buf = new Buffer(this.width,this.height)
     buf.fgcolor = this.fgcolor
+    buf.bgcolor = this.bgcolor
     buf.data = data
     buf.persist()
     return buf
@@ -130,6 +142,8 @@ class Buffer {
     let c = canvas.getContext('2d')
     c.fillStyle = 'white'
     c.fillRect(0,0,canvas.width,canvas.height)
+    c.fillStyle = hsl_to_css(this.bgcolor)
+    c.fillRect(0,0,this.width*scale,this.height*scale)
     for(let x=0; x<this.width; x++) {
       for(let y=0; y<this.height; y++) {
         let v = this.getPixel({x:x,y:y})
@@ -152,10 +166,10 @@ class Buffer {
 
   draw_pixel(c, x, y, v, scale) {
     // let color = 'white'
-    let color = `hsl(${Math.floor(this.fgcolor.h)},${Math.floor(this.fgcolor.s*100)}%,${this.fgcolor.l*100}%)`
+    let color = hsl_to_css(this.fgcolor)
     c.beginPath()
     if(v === 0) {
-      c.fillStyle = 'white'
+      c.fillStyle = hsl_to_css(this.bgcolor)
       c.fillRect(x*scale,y*scale,scale,scale)
     }
     if(v === 1) {
@@ -257,7 +271,7 @@ const BufferEditor = ({width, height, initialZoom}) => {
       <button onClick={()=>set_buffer(buffer.shift(-1,0))}>shift left</button>
       <button onClick={()=>set_buffer(buffer.shift(1,0))}>shift right</button>
       <ColorPickerButton color={buffer.fgcolor} onChange={(c)=> set_buffer(buffer.set_fg_color(c.hsl))}/>
-      {/*<ColorPickerButton color={buffer.fgcolor}*/}
+      <ColorPickerButton color={buffer.bgcolor} onChange={(c)=> set_buffer(buffer.set_bg_color(c.hsl))}/>
     </VBox>
     <canvas className={"drawing-surface"} ref={ref} width={width} height={height} onClick={handle_click}  />
   </HBox>
