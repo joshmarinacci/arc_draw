@@ -1,5 +1,6 @@
 import './App.css';
 import {useEffect, useRef, useState} from 'react'
+import {SketchPicker} from "react-color"
 
 export const HBox = ({children}) => {
   return <div className={"hbox"}>{children}</div>
@@ -19,8 +20,18 @@ class Buffer {
     this.height = h
     this.data = new Array(w*h)
     this.data.fill(0)
+    this.fgcolor = {
+      h:0.2,
+      s:0.5,
+      l:0.5,
+    }
   }
   setPixel(pt, value) {
+    if(pt.x < 0) return this
+    if(pt.y < 0) return this
+    if(pt.x >= this.width) return this
+    if(pt.y >= this.height) return this
+
     let n = pt.y*this.width + pt.x
     this.data[n] = value
     return this.clone()
@@ -32,6 +43,7 @@ class Buffer {
   clone() {
     let buf = new Buffer(this.width,this.height)
     buf.data = this.data
+    buf.fgcolor = this.fgcolor
     buf.persist()
     return buf
   }
@@ -54,17 +66,32 @@ class Buffer {
     return this.clone()
   }
 
+  set_fg_color(c) {
+    let buf = this.clone()
+    buf.fgcolor = c
+    return buf
+  }
+
   shift(dx,dy) {
+    const wrap = (v, max) => {
+      if(v < 0) return v+max
+      if(v >= max) return v%max
+      return v
+    }
     let data = this.data.slice()
+    data.fill(0)
     for(let x=0; x<this.width; x++) {
       for(let y=0; y<this.height; y++) {
         let n1 = this.width*y + x
         let v = this.data[n1]
-        let n2 = this.width*((y+dy)%this.height) + ((x+dx)%this.width)
+        let x2 = wrap(x+dx,this.width)
+        let y2 = wrap(y+dy,this.height)
+        let n2 = this.width*y2 + x2
         data[n2] = v
       }
     }
     let buf = new Buffer(this.width,this.height)
+    buf.fgcolor = this.fgcolor
     buf.data = data
     buf.persist()
     return buf
@@ -125,41 +152,42 @@ class Buffer {
 
   draw_pixel(c, x, y, v, scale) {
     // let color = 'white'
+    let color = `hsl(${Math.floor(this.fgcolor.h)},${Math.floor(this.fgcolor.s*100)}%,${this.fgcolor.l*100}%)`
     c.beginPath()
     if(v === 0) {
       c.fillStyle = 'white'
       c.fillRect(x*scale,y*scale,scale,scale)
     }
     if(v === 1) {
-      c.fillStyle = 'black'
+      c.fillStyle = color
       c.moveTo(x*scale,y*scale)
       c.lineTo(x*scale+scale,y*scale+scale)
       c.lineTo(x*scale,y*scale+scale)
       c.fill()
     }
     if(v === 2) {
-      c.fillStyle = 'black'
+      c.fillStyle = color
       c.moveTo(x*scale+scale,y*scale)
       c.lineTo(x*scale,y*scale+scale)
       c.lineTo(x*scale,y*scale)
       c.fill()
     }
     if(v === 3) {
-      c.fillStyle = 'black'
+      c.fillStyle = color
       c.moveTo(x*scale+scale,y*scale)
       c.lineTo(x*scale+scale,y*scale+scale)
       c.lineTo(x*scale,y*scale)
       c.fill()
     }
     if(v === 4) {
-      c.fillStyle = 'black'
+      c.fillStyle = color
       c.moveTo(x*scale+scale,y*scale+scale)
       c.lineTo(x*scale,y*scale+scale)
       c.lineTo(x*scale+scale,y*scale)
       c.fill()
     }
     if(v === 5) {
-      c.fillStyle = 'black'
+      c.fillStyle = color
       c.moveTo(x*scale,y*scale)
       c.lineTo(x*scale+scale,y*scale)
       c.lineTo(x*scale+scale,y*scale+scale)
@@ -225,6 +253,10 @@ const BufferEditor = ({width, height, initialZoom}) => {
       <button onClick={()=>buffer.export_png(30)}>export 30</button>
       <button onClick={()=>buffer.export_json()}>export JSON</button>
       <button onClick={()=>set_buffer(buffer.shift(0,1))}>shift down</button>
+      <button onClick={()=>set_buffer(buffer.shift(0,-1))}>shift up</button>
+      <button onClick={()=>set_buffer(buffer.shift(-1,0))}>shift left</button>
+      <button onClick={()=>set_buffer(buffer.shift(1,0))}>shift right</button>
+      <SketchPicker color={buffer.fgcolor} onChange={(c)=> set_buffer(buffer.set_fg_color(c.hsl))}/>
     </VBox>
     <canvas className={"drawing-surface"} ref={ref} width={width} height={height} onClick={handle_click}  />
   </HBox>
