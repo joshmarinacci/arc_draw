@@ -23,56 +23,42 @@ const draw_border_layer = (buffer, c, scale) => {
     c.strokeRect(0, 0, buffer.width * scale, buffer.height * scale)
 }
 const draw_pixel_layer = (buffer, c, scale, draw_pixel) => {
+    c.fillStyle = hsl_to_css(buffer.fgcolor)
+    c.beginPath()
     for (let x = 0; x < buffer.width; x++) {
         for (let y = 0; y < buffer.height; y++) {
             let v = buffer.getPixel({x: x, y: y})
-            draw_pixel(buffer, c, x, y, v, scale)
+            if(v > 0) draw_pixel(buffer,c,x,y,v,scale)
         }
     }
+    c.fill()
 }
 const draw_pixel = (buffer, c, x, y, v, scale) => {
-    // let color = 'white'
-    let color = hsl_to_css(buffer.fgcolor)
-    c.beginPath()
-    if (v === 0) {
-        c.fillStyle = hsl_to_css(buffer.bgcolor)
-        c.fillRect(x * scale, y * scale, scale, scale)
-    }
     if (v === 1) {
-        c.fillStyle = color
         c.moveTo(x * scale, y * scale)
         c.lineTo(x * scale + scale, y * scale + scale)
         c.lineTo(x * scale, y * scale + scale)
-        c.fill()
     }
     if (v === 2) {
-        c.fillStyle = color
         c.moveTo(x * scale + scale, y * scale)
         c.lineTo(x * scale, y * scale + scale)
         c.lineTo(x * scale, y * scale)
-        c.fill()
     }
     if (v === 3) {
-        c.fillStyle = color
         c.moveTo(x * scale + scale, y * scale)
         c.lineTo(x * scale + scale, y * scale + scale)
         c.lineTo(x * scale, y * scale)
-        c.fill()
     }
     if (v === 4) {
-        c.fillStyle = color
         c.moveTo(x * scale + scale, y * scale + scale)
         c.lineTo(x * scale, y * scale + scale)
         c.lineTo(x * scale + scale, y * scale)
-        c.fill()
     }
     if (v === 5) {
-        c.fillStyle = color
         c.moveTo(x * scale, y * scale)
         c.lineTo(x * scale + scale, y * scale)
         c.lineTo(x * scale + scale, y * scale + scale)
         c.lineTo(x * scale, y * scale + scale)
-        c.fill()
     }
 }
 const draw_gradient_layer = (buffer, c,scale) => {
@@ -86,12 +72,7 @@ const draw_gradient_layer = (buffer, c,scale) => {
     for (let x = 0; x < buffer.width; x++) {
         for (let y = 0; y < buffer.height; y++) {
             let v = buffer.getPixel({x: x, y: y})
-            if(v > 0) {
-                c.moveTo(x * scale, y * scale)
-                c.lineTo(x * scale + scale, y * scale)
-                c.lineTo(x * scale + scale, y * scale + scale)
-                c.lineTo(x * scale, y * scale + scale)
-            }
+            if(v > 0) draw_pixel(buffer,c,x,y,v,scale)
         }
     }
     c.fill()
