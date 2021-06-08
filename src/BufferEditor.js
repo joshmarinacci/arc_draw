@@ -43,16 +43,27 @@ export const BufferEditor = ({width, height, initialZoom}) => {
         set_buffer(buffer.setPixel(pt,v))
         set_drag_value(v)
     }
+    function handle_touchstart(e) {
+        if(e.touches.length !==  1) return
+        return handle_down(e.touches[0])
+    }
     function handle_move(e) {
         if(dragging) {
             let pt = to_point(e)
             set_buffer(buffer.setPixel(pt,drag_value))
         }
     }
+    function handle_touchmove(e) {
+        if(e.touches.length !==  1) return
+        return handle_move(e.touches[0])
+    }
     function handle_up(e) {
         set_dragging(false)
     }
-
+    function handle_touchend(e) {
+        if(e.touches.length !==  1) return
+        return handle_up(e.touches[0])
+    }
 
     useEffect(() => {
         let scale = zoom_to_scale(zoom)
@@ -88,6 +99,9 @@ export const BufferEditor = ({width, height, initialZoom}) => {
                 onMouseDown={handle_down}
                 onMouseMove={handle_move}
                 onMouseUp={handle_up}
+                onTouchStart={handle_touchstart}
+                onTouchMove={handle_touchmove}
+                onTouchEnd={handle_touchend}
         />
         <VBox>
             <button onClick={()=>set_draw_gradient(!draw_gradient)}>gradient</button>
