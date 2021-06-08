@@ -2,10 +2,13 @@ import {useEffect, useRef, useState} from 'react'
 import {Buffer} from './Buffer.js'
 import {HBox, VBox} from './common.js'
 import {ColorPickerButton} from './ColorPickerButton.js'
+import {BufferRenderer} from './BufferRenderer.js'
 
 function zoom_to_scale(zoom) {
     return Math.pow(1.5, zoom)
 }
+
+let renderer = new BufferRenderer()
 
 export const BufferEditor = ({width, height, initialZoom}) => {
     let ref = useRef()
@@ -65,7 +68,7 @@ export const BufferEditor = ({width, height, initialZoom}) => {
 
     useEffect(() => {
         let scale = zoom_to_scale(zoom)
-        if (ref.current) buffer.draw(ref.current, scale, draw_grid)
+        if (ref.current) renderer.render(ref.current, buffer, scale, draw_grid)
     }, [ref, buffer, zoom, draw_grid])
     return <HBox>
         <VBox>
@@ -74,8 +77,8 @@ export const BufferEditor = ({width, height, initialZoom}) => {
             <button onClick={() => set_draw_grid(!draw_grid)}>grid</button>
             <button onClick={() => set_buffer(buffer.clear())}>clear</button>
             <button onClick={() => buffer.persist()}>persist</button>
-            <button onClick={() => buffer.export_png(30)}>export 30</button>
-            <button onClick={() => buffer.export_json()}>export JSON</button>
+            <button onClick={() => renderer.export_png(buffer,30)}>export 30</button>
+            <button onClick={() => renderer.export_json(buffer)}>export JSON</button>
             <button onClick={() => set_buffer(buffer.shift(0, 1))}>shift down</button>
             <button onClick={() => set_buffer(buffer.shift(0, -1))}>shift up</button>
             <button onClick={() => set_buffer(buffer.shift(-1, 0))}>shift left</button>
