@@ -95,12 +95,12 @@ export class BufferRenderer {
         if (settings.draw_grid) draw_grid_layer(buffer, ctx, scale)
         draw_border_layer(buffer, ctx, scale)
     }
-    export_png(buffer,scale) {
+    export_png(buffer,scale,settings) {
         // console.log("exporting at scale",scale)
         let canvas = document.createElement("canvas")
         canvas.width = buffer.width * scale
         canvas.height = buffer.height * scale
-        this.render(canvas,buffer,scale,false)
+        this.render(canvas,buffer,scale,settings)
         // his.draw(canvas, scale, false)
         let url = canvas.toDataURL("png")
         const a = document.createElement('a')

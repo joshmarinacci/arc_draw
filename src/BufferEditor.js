@@ -78,7 +78,10 @@ export const BufferEditor = ({width, height, initialZoom}) => {
             <button onClick={() => set_buffer(buffer.shift(1, 0))}>shift right</button>
             <Spacer/>
             <button onClick={() => set_buffer(buffer.clear())}>clear</button>
-            <button onClick={() => renderer.export_png(buffer,30)}>export 30</button>
+            <button onClick={() => renderer.export_png(buffer,30,{
+                draw_grid:false,
+                draw_gradient:draw_gradient,
+            })}>export 30</button>
             <button onClick={() => renderer.export_json(buffer)}>export JSON</button>
         </VBox>
         <canvas className={"drawing-surface"} ref={ref} width={width} height={height}
