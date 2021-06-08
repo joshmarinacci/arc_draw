@@ -77,6 +77,32 @@ export class Buffer {
         return buf
     }
 
+    invert() {
+        let data = this.data.slice()
+        data.fill(0)
+        function invert_value(v) {
+            if(v === 0) return 5
+            if(v === 1) return 3
+            if(v === 2) return 4
+            if(v === 3) return 1
+            if(v === 4) return 2
+            if(v === 5) return 0
+            return v
+        }
+        for (let x = 0; x < this.width; x++) {
+            for (let y = 0; y < this.height; y++) {
+                let n1 = this.width * y + x
+                let v = this.data[n1]
+                data[n1] = invert_value(v)
+            }
+        }
+        let buf = new Buffer(this.width, this.height)
+        buf.fgcolor = this.fgcolor
+        buf.bgcolor = this.bgcolor
+        buf.data = data
+        return buf
+    }
+
     shift(dx, dy) {
         const wrap = (v, max) => {
             if (v < 0) return v + max

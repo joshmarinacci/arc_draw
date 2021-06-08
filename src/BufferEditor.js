@@ -78,10 +78,7 @@ export const BufferEditor = ({width, height, initialZoom}) => {
                                onChange={(c) => set_buffer(buffer.set_fg_color(c.hsl))}/>
             <ColorPickerButton color={buffer.bgcolor}
                                onChange={(c) => set_buffer(buffer.set_bg_color(c.hsl))}/>
-            <Spacer/>
-            <button onClick={() => set_zoom(zoom + 1)}>zoom in</button>
-            <button onClick={() => set_zoom(zoom - 1)}>zoom out</button>
-            <button onClick={() => set_draw_grid(!draw_grid)}>grid</button>
+            <button onClick={() => set_buffer(buffer.invert())}>invert</button>
             <Spacer/>
             <button onClick={() => set_buffer(buffer.shift(0, 1))}>shift down</button>
             <button onClick={() => set_buffer(buffer.shift(0, -1))}>shift up</button>
@@ -89,6 +86,7 @@ export const BufferEditor = ({width, height, initialZoom}) => {
             <button onClick={() => set_buffer(buffer.shift(1, 0))}>shift right</button>
             <Spacer/>
             <button onClick={() => set_buffer(buffer.clear())}>clear</button>
+            <Spacer/>
             <button onClick={() => renderer.export_png(buffer,30,{
                 draw_grid:false,
                 draw_gradient:draw_gradient,
@@ -104,6 +102,9 @@ export const BufferEditor = ({width, height, initialZoom}) => {
                 onTouchEnd={handle_touchend}
         />
         <VBox>
+            <button onClick={() => set_zoom(zoom + 1)}>zoom in</button>
+            <button onClick={() => set_zoom(zoom - 1)}>zoom out</button>
+            <button onClick={() => set_draw_grid(!draw_grid)}>grid</button>
             <button onClick={()=>set_draw_gradient(!draw_gradient)}>gradient</button>
         </VBox>
     </HBox>

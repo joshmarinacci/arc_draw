@@ -5,7 +5,7 @@ import {BufferEditor} from './BufferEditor.js'
 function App() {
 
   return <HBox>
-    <BufferEditor width={1280} height={768} initialZoom={4}/>
+    <BufferEditor width={1280} height={768} initialZoom={6}/>
   </HBox>
 }
 

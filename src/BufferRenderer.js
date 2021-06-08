@@ -34,27 +34,28 @@ const draw_pixel_layer = (buffer, c, scale, draw_pixel) => {
     c.fill()
 }
 const draw_pixel = (buffer, c, x, y, v, scale) => {
-    if (v === 1) {
+    //v===0 means entire square is empty
+    if (v === 1) { //lower left
         c.moveTo(x * scale, y * scale)
         c.lineTo(x * scale + scale, y * scale + scale)
         c.lineTo(x * scale, y * scale + scale)
     }
-    if (v === 2) {
+    if (v === 2) { //upper left
         c.moveTo(x * scale + scale, y * scale)
         c.lineTo(x * scale, y * scale + scale)
         c.lineTo(x * scale, y * scale)
     }
-    if (v === 3) {
+    if (v === 3) { //upper right
         c.moveTo(x * scale + scale, y * scale)
         c.lineTo(x * scale + scale, y * scale + scale)
         c.lineTo(x * scale, y * scale)
     }
-    if (v === 4) {
+    if (v === 4) { //lower right
         c.moveTo(x * scale + scale, y * scale + scale)
         c.lineTo(x * scale, y * scale + scale)
         c.lineTo(x * scale + scale, y * scale)
     }
-    if (v === 5) {
+    if (v === 5) { // fill entire square
         c.moveTo(x * scale, y * scale)
         c.lineTo(x * scale + scale, y * scale)
         c.lineTo(x * scale + scale, y * scale + scale)
