@@ -1,4 +1,4 @@
-import {hsl_to_css} from './ColorPickerButton.js'
+import {adjust_hue, hsl_to_css} from './ColorPickerButton.js'
 
 const draw_grid_layer = (buffer, c, scale) => {
     //draw grid
@@ -75,19 +75,43 @@ const draw_pixel = (buffer, c, x, y, v, scale) => {
         c.fill()
     }
 }
+const draw_gradient_layer = (buffer, c,scale) => {
+    let gradient = c.createLinearGradient(0,  buffer.height*scale,buffer.width*scale,0);
+    gradient.addColorStop(0, hsl_to_css(adjust_hue(buffer.fgcolor,-45)));
+    gradient.addColorStop(.5, hsl_to_css(adjust_hue(buffer.fgcolor,0)));
+    gradient.addColorStop(1, hsl_to_css(adjust_hue(buffer.fgcolor,+45)));
+
+    c.fillStyle = gradient
+    c.beginPath()
+    for (let x = 0; x < buffer.width; x++) {
+        for (let y = 0; y < buffer.height; y++) {
+            let v = buffer.getPixel({x: x, y: y})
+            if(v > 0) {
+                c.moveTo(x * scale, y * scale)
+                c.lineTo(x * scale + scale, y * scale)
+                c.lineTo(x * scale + scale, y * scale + scale)
+                c.lineTo(x * scale, y * scale + scale)
+            }
+        }
+    }
+    c.fill()
+}
 
 export class BufferRenderer {
     constructor() {
     }
 
-    render(canvas, buffer, scale, should_draw_grid) {
+    render(canvas, buffer, scale, settings) {
         let ctx = canvas.getContext('2d')
         ctx.fillStyle = 'white'
         ctx.fillRect(0, 0, canvas.width, canvas.height)
         draw_background_layer(buffer, ctx, scale)
-        // buffer.draw(canvas,ctx,scale)
-        draw_pixel_layer(buffer, ctx, scale, draw_pixel)
-        if (should_draw_grid) draw_grid_layer(buffer, ctx, scale)
+        if(settings.draw_gradient) {
+            draw_gradient_layer(buffer, ctx, scale)
+        } else {
+            draw_pixel_layer(buffer, ctx, scale, draw_pixel)
+        }
+        if (settings.draw_grid) draw_grid_layer(buffer, ctx, scale)
         draw_border_layer(buffer, ctx, scale)
     }
     export_png(buffer,scale) {

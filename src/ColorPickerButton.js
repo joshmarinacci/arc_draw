@@ -4,6 +4,14 @@ import {ChromePicker} from 'react-color'
 export function hsl_to_css(color) {
     return `hsl(${Math.floor(color.h)},${Math.floor(color.s * 100)}%,${color.l * 100}%)`
 }
+export function adjust_hue(hsl, d) {
+    return {
+        h:hsl.h+d,
+        s:hsl.s,
+        l:hsl.l,
+    }
+}
+
 
 export const ColorPickerButton = ({color, onChange}) => {
     const [show, set_show] = useState(false)

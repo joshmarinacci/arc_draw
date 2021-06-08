@@ -18,7 +18,8 @@ export const BufferEditor = ({width, height, initialZoom}) => {
         return buf
     })
     let [zoom, set_zoom] = useState(initialZoom)
-    let [draw_grid, set_draw_grid] = useState(true)
+    let [draw_grid, set_draw_grid] = useState(false)
+    let [draw_gradient, set_draw_gradient] = useState(true)
     let [dragging, set_dragging] = useState(false)
 
     function to_point(e) {
@@ -31,19 +32,6 @@ export const BufferEditor = ({width, height, initialZoom}) => {
         pt.x = Math.floor(pt.x / scale)
         pt.y = Math.floor(pt.y / scale)
         return pt
-    }
-    function handle_click(e) {
-        let off = e.target.getBoundingClientRect()
-        let pt = {
-            x: e.clientX - off.x,
-            y: e.clientY - off.y
-        }
-        let scale = zoom_to_scale(zoom)
-        pt.x = Math.floor(pt.x / scale)
-        pt.y = Math.floor(pt.y / scale)
-        let v = buffer.getPixel(pt)
-        v = (v + 1) % 6
-        set_buffer(buffer.setPixel(pt, v))
     }
 
     let [drag_value, set_drag_value] = useState(0)
@@ -68,8 +56,11 @@ export const BufferEditor = ({width, height, initialZoom}) => {
 
     useEffect(() => {
         let scale = zoom_to_scale(zoom)
-        if (ref.current) renderer.render(ref.current, buffer, scale, draw_grid)
-    }, [ref, buffer, zoom, draw_grid])
+        if (ref.current) renderer.render(ref.current, buffer, scale, {
+            draw_grid:draw_grid,
+            draw_gradient:draw_gradient
+        })
+    }, [ref, buffer, zoom, draw_grid, draw_gradient])
     return <HBox>
         <VBox>
             <ColorPickerButton color={buffer.fgcolor}
@@ -96,7 +87,7 @@ export const BufferEditor = ({width, height, initialZoom}) => {
                 onMouseUp={handle_up}
         />
         <VBox>
-
+            <button onClick={()=>set_draw_gradient(!draw_gradient)}>gradient</button>
         </VBox>
     </HBox>
 }
