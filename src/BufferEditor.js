@@ -1,6 +1,6 @@
 import {useEffect, useRef, useState} from 'react'
 import {Buffer} from './Buffer.js'
-import {HBox, VBox} from './common.js'
+import {HBox, Spacer, VBox} from './common.js'
 import {ColorPickerButton} from './ColorPickerButton.js'
 import {BufferRenderer} from './BufferRenderer.js'
 
@@ -72,27 +72,31 @@ export const BufferEditor = ({width, height, initialZoom}) => {
     }, [ref, buffer, zoom, draw_grid])
     return <HBox>
         <VBox>
-            <button onClick={() => set_zoom(zoom + 1)}>zoom in</button>
-            <button onClick={() => set_zoom(zoom - 1)}>zoom out</button>
-            <button onClick={() => set_draw_grid(!draw_grid)}>grid</button>
-            <button onClick={() => set_buffer(buffer.clear())}>clear</button>
-            <button onClick={() => buffer.persist()}>persist</button>
-            <button onClick={() => renderer.export_png(buffer,30)}>export 30</button>
-            <button onClick={() => renderer.export_json(buffer)}>export JSON</button>
-            <button onClick={() => set_buffer(buffer.shift(0, 1))}>shift down</button>
-            <button onClick={() => set_buffer(buffer.shift(0, -1))}>shift up</button>
-            <button onClick={() => set_buffer(buffer.shift(-1, 0))}>shift left</button>
-            <button onClick={() => set_buffer(buffer.shift(1, 0))}>shift right</button>
             <ColorPickerButton color={buffer.fgcolor}
                                onChange={(c) => set_buffer(buffer.set_fg_color(c.hsl))}/>
             <ColorPickerButton color={buffer.bgcolor}
                                onChange={(c) => set_buffer(buffer.set_bg_color(c.hsl))}/>
+            <Spacer/>
+            <button onClick={() => set_zoom(zoom + 1)}>zoom in</button>
+            <button onClick={() => set_zoom(zoom - 1)}>zoom out</button>
+            <button onClick={() => set_draw_grid(!draw_grid)}>grid</button>
+            <Spacer/>
+            <button onClick={() => set_buffer(buffer.shift(0, 1))}>shift down</button>
+            <button onClick={() => set_buffer(buffer.shift(0, -1))}>shift up</button>
+            <button onClick={() => set_buffer(buffer.shift(-1, 0))}>shift left</button>
+            <button onClick={() => set_buffer(buffer.shift(1, 0))}>shift right</button>
+            <Spacer/>
+            <button onClick={() => set_buffer(buffer.clear())}>clear</button>
+            <button onClick={() => renderer.export_png(buffer,30)}>export 30</button>
+            <button onClick={() => renderer.export_json(buffer)}>export JSON</button>
         </VBox>
         <canvas className={"drawing-surface"} ref={ref} width={width} height={height}
-                // onClick={handle_click}
                 onMouseDown={handle_down}
                 onMouseMove={handle_move}
                 onMouseUp={handle_up}
         />
+        <VBox>
+
+        </VBox>
     </HBox>
 }

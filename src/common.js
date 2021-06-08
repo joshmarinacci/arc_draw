@@ -7,3 +7,6 @@ export const VBox = ({children}) => {
 export const FillBox = ({children}) => {
     return <div className={"fillbox"}>{children}</div>
 }
+export const Spacer = () => {
+    return <div className={'spacer'}></div>
+}

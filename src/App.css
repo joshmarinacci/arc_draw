@@ -12,6 +12,10 @@
   flex-direction: column;
 }
 
+.spacer {
+  flex: 1.0;
+}
+
 button {
   background: white;
   border: 1px solid black;
