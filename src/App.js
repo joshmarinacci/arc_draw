@@ -1,6 +1,6 @@
 import './App.css'
-import {HBox} from './common.js'
 import {BufferEditor} from './BufferEditor.js'
+import {HBox} from "appy-comps"
 
 function App() {
 

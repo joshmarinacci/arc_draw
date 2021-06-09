@@ -1,8 +1,8 @@
 import {useEffect, useRef, useState} from 'react'
 import {Buffer} from './Buffer.js'
-import {HBox, Spacer, VBox} from './common.js'
 import {ColorPickerButton} from './ColorPickerButton.js'
 import {BufferRenderer} from './BufferRenderer.js'
+import {HBox, Spacer, VBox} from 'appy-comps'
 
 function zoom_to_scale(zoom) {
     return Math.pow(1.5, zoom)
