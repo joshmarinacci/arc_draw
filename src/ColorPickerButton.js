@@ -1,5 +1,6 @@
-import {useState} from 'react'
-import {ChromePicker} from 'react-color'
+import {Component, useState} from 'react'
+import {ChromePicker, CustomPicker, HuePicker} from 'react-color'
+import {Hue, Saturation} from 'react-color/lib/components/common'
 
 export function hsl_to_css(color) {
     return `hsl(${Math.floor(color.h)},${Math.floor(color.s * 100)}%,${color.l * 100}%)`
@@ -55,7 +56,28 @@ export const ColorPickerButton = ({color, onChange}) => {
         </div>
         {show ? <div style={popover}>
             <div style={cover} onClick={handle_close}/>
-            <ChromePicker color={color} onChange={onChange}/>
+            <MyColorPicker color={color} onChange={onChange}/>
         </div> : null}
     </div>
 }
+
+class MyColorPickerImpl extends Component {
+    render() {
+        return <div style={{
+            width:'400px',
+            height:'100px',
+        }}>
+            <div style={{
+                position:'relative',
+                height:'40px',
+            }}><Hue {...this.props} direction={"horizontal"}/></div>
+            <div style={{
+                position:'relative',
+                height:'60px',
+            }}><Saturation {...this.props} direction={"horizontal"}/></div>
+        </div>
+    }
+}
+
+const MyColorPicker = CustomPicker(MyColorPickerImpl);
+
