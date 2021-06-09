@@ -129,6 +129,13 @@ export class Buffer {
         return buf
     }
 
+    resize(w,h) {
+        let buf = new Buffer(w,h)
+        buf.fgcolor = this.fgcolor
+        buf.bgcolor = this.bgcolor
+        return buf
+    }
+
     persist() {
         localStorage.setItem(LATEST_BUFFER_KEY, JSON.stringify(this))
     }

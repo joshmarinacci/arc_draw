@@ -2,13 +2,37 @@ import {useEffect, useRef, useState} from 'react'
 import {Buffer} from './Buffer.js'
 import {ColorPickerButton} from './ColorPickerButton.js'
 import {BufferRenderer} from './BufferRenderer.js'
-import {HBox, Spacer, VBox} from 'appy-comps'
+import {Dialog, HBox, Spacer, VBox} from 'appy-comps'
 
 function zoom_to_scale(zoom) {
     return Math.pow(1.5, zoom)
 }
 
 let renderer = new BufferRenderer()
+
+function ResizeDialog({onCancel, onOkay, buffer}) {
+    const [w, sw] = useState(buffer.width)
+    const [h, sh] = useState(buffer.height)
+    return <div>
+        <p>do you want to save the document?</p>
+        <HBox>
+            <form>
+                <label>width</label>
+                <input type="number" value={w} onChange={(e)=>{
+                    sw(parseInt(e.target.value))
+                }}/>
+                <label>height</label>
+                <input type="number" value={h} onChange={(e)=>{
+                    sh(parseInt(e.target.value))
+                }}/>
+            </form>
+            <button onClick={onCancel}>cancel</button>
+            <button onClick={()=>{
+                onOkay(buffer.resize(w,h))
+            }}>resize</button>
+        </HBox>
+    </div>
+}
 
 export const BufferEditor = ({width, height, initialZoom}) => {
     let ref = useRef()
@@ -21,6 +45,7 @@ export const BufferEditor = ({width, height, initialZoom}) => {
     let [draw_grid, set_draw_grid] = useState(false)
     let [draw_gradient, set_draw_gradient] = useState(true)
     let [dragging, set_dragging] = useState(false)
+    let [resize_shown, set_resize_shown] = useState(false)
 
     function to_point(e) {
         let off = e.target.getBoundingClientRect()
@@ -65,6 +90,10 @@ export const BufferEditor = ({width, height, initialZoom}) => {
         return handle_up(e.touches[0])
     }
 
+    function show_resize() {
+        set_resize_shown(true)
+    }
+
     useEffect(() => {
         let scale = zoom_to_scale(zoom)
         if (ref.current) renderer.render(ref.current, buffer, scale, {
@@ -86,6 +115,7 @@ export const BufferEditor = ({width, height, initialZoom}) => {
             <button onClick={() => set_buffer(buffer.shift(1, 0))}>shift right</button>
             <Spacer/>
             <button onClick={() => set_buffer(buffer.clear())}>clear</button>
+            <button onClick={() => show_resize()}>resize</button>
             <Spacer/>
             <button onClick={() => renderer.export_png(buffer,30,{
                 draw_grid:false,
@@ -102,10 +132,18 @@ export const BufferEditor = ({width, height, initialZoom}) => {
                 onTouchEnd={handle_touchend}
         />
         <VBox>
-            <button onClick={() => set_zoom(zoom + 1)}>zoom in</button>
-            <button onClick={() => set_zoom(zoom - 1)}>zoom out</button>
+            <button onClick={() => set_zoom(zoom + 1)}>zoom&nbsp;in</button>
+            <button onClick={() => set_zoom(zoom - 1)}>zoom&nbsp;out</button>
             <button onClick={() => set_draw_grid(!draw_grid)}>grid</button>
             <button onClick={()=>set_draw_gradient(!draw_gradient)}>gradient</button>
         </VBox>
+
+        <Dialog visible={resize_shown}>
+            <ResizeDialog buffer={buffer} onCancel={()=>set_resize_shown(false)} onOkay={(buffer)=>{
+                set_buffer(buffer)
+                set_resize_shown(false)
+            }}/>
+        </Dialog>
+
     </HBox>
 }
