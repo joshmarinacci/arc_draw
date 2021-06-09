@@ -1,8 +1,10 @@
-import {useEffect, useRef, useState} from 'react'
+import {useContext, useEffect, useRef, useState} from 'react'
 import {Buffer} from './Buffer.js'
 import {ColorPickerButton} from './ColorPickerButton.js'
 import {BufferRenderer} from './BufferRenderer.js'
-import {Dialog, HBox, Spacer, VBox} from 'appy-comps'
+import {
+    Dialog, HBox, Spacer, VBox, PopupContainer, PopupManager, PopupManagerContext
+} from 'appy-comps'
 
 function zoom_to_scale(zoom) {
     return Math.pow(1.5, zoom)
@@ -34,7 +36,12 @@ function ResizeDialog({onCancel, onOkay, buffer}) {
     </div>
 }
 
+function ToggleButton({selected, children, ...rest}) {
+    return <button className={selected?"selected":"unselected"} {...rest}>{children}</button>
+}
+
 export const BufferEditor = ({width, height, initialZoom}) => {
+    const pm = useContext(PopupManagerContext)
     let ref = useRef()
     let [buffer, set_buffer] = useState(() => {
         let buf = new Buffer(16, 16)
@@ -101,6 +108,14 @@ export const BufferEditor = ({width, height, initialZoom}) => {
             draw_gradient:draw_gradient
         })
     }, [ref, buffer, zoom, draw_grid, draw_gradient])
+
+    function export_png_scaled(scale) {
+        pm.hide()
+        renderer.export_png(buffer,scale,{
+            draw_grid:false,
+            draw_gradient:draw_gradient,
+        })
+    }
     return <HBox>
         <VBox>
             <ColorPickerButton color={buffer.fgcolor}
@@ -117,11 +132,8 @@ export const BufferEditor = ({width, height, initialZoom}) => {
             <button onClick={() => set_buffer(buffer.clear())}>clear</button>
             <button onClick={() => show_resize()}>resize</button>
             <Spacer/>
-            <button onClick={() => renderer.export_png(buffer,30,{
-                draw_grid:false,
-                draw_gradient:draw_gradient,
-            })}>export 30</button>
-            <button onClick={() => renderer.export_json(buffer)}>export JSON</button>
+
+
         </VBox>
         <canvas className={"drawing-surface"} ref={ref} width={width} height={height}
                 onMouseDown={handle_down}
@@ -132,10 +144,19 @@ export const BufferEditor = ({width, height, initialZoom}) => {
                 onTouchEnd={handle_touchend}
         />
         <VBox>
+            <button onClick={(e)=>{
+                pm.show(<VBox>
+                    <button onClick={()=>export_png_scaled(25)}>png 25x</button>
+                    <button onClick={()=>export_png_scaled(30)}>png 30x</button>
+                    <button onClick={()=>export_png_scaled(50)}>png 50x</button>
+                    <button onClick={()=>export_png_scaled(100)}>png 100x</button>
+                    <button onClick={() => renderer.export_json(buffer)}>export JSON</button>
+                </VBox>,e.target)
+            }}>export</button>
             <button onClick={() => set_zoom(zoom + 1)}>zoom&nbsp;in</button>
             <button onClick={() => set_zoom(zoom - 1)}>zoom&nbsp;out</button>
-            <button onClick={() => set_draw_grid(!draw_grid)}>grid</button>
-            <button onClick={()=>set_draw_gradient(!draw_gradient)}>gradient</button>
+            <ToggleButton selected={draw_grid} onClick={() => set_draw_grid(!draw_grid)}>grid</ToggleButton>
+            <ToggleButton selected={draw_gradient} onClick={()=>set_draw_gradient(!draw_gradient)}>gradient</ToggleButton>
         </VBox>
 
         <Dialog visible={resize_shown}>
@@ -144,6 +165,7 @@ export const BufferEditor = ({width, height, initialZoom}) => {
                 set_resize_shown(false)
             }}/>
         </Dialog>
+        <PopupContainer/>
 
     </HBox>
 }

@@ -19,4 +19,12 @@
 button {
   background: white;
   border: 1px solid black;
+  margin: 0.125rem  0.25rem;
+  border-radius: 0.25rem;
+}
+
+
+button.selected {
+  background: black;
+  color: white;
 }
