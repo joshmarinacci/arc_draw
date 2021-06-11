@@ -141,4 +141,11 @@ export class Buffer {
     }
 
 
+    clone_from_json(json) {
+        let buf = new Buffer(json.width,json.height)
+        buf.data = json.data
+        if(json.fgcolor) buf.fgcolor = json.fgcolor
+        if(json.bgcolor) buf.bgcolor = json.bgcolor
+        return buf
+    }
 }

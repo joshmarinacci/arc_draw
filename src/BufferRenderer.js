@@ -1,4 +1,7 @@
 import {adjust_hue, hsl_to_css} from './ColorPickerButton.js'
+import {readMetadata, writeMetadata} from "./vendor/index.js"
+import {buffer_to_dataurl, canvas_to_blob, force_download} from './util.js'
+
 
 const draw_grid_layer = (buffer, c, scale) => {
     //draw grid
@@ -96,31 +99,29 @@ export class BufferRenderer {
         if (settings.draw_grid) draw_grid_layer(buffer, ctx, scale)
         draw_border_layer(buffer, ctx, scale)
     }
-    export_png(buffer,scale,settings) {
-        // console.log("exporting at scale",scale)
+
+    async export_png(buffer,scale,settings) {
         let canvas = document.createElement("canvas")
         canvas.width = buffer.width * scale
         canvas.height = buffer.height * scale
         this.render(canvas,buffer,scale,settings)
-        // his.draw(canvas, scale, false)
-        let url = canvas.toDataURL("png")
-        const a = document.createElement('a')
-        a.href = url
-        a.download = 'image.png'
-        document.body.appendChild(a)
-        a.click()
-        document.body.removeChild(a)
+        let json = JSON.stringify(buffer)
+        let blob = await canvas_to_blob(canvas)
+        let array_buffer = await blob.arrayBuffer()
+        let uint8buffer = new Uint8Array(array_buffer)
+        let out_buffer = writeMetadata(uint8buffer,{
+            tEXt: {
+                SOURCE:json,
+            }
+        })
+        let url = buffer_to_dataurl(out_buffer,"image/png")
+        force_download(url,"image.png")
     }
 
     export_json(buffer) {
         let data = JSON.stringify(buffer)
-        console.log('data', btoa(data))
-        const a = document.createElement('a')
-        a.href = 'data:application/json;base64,' + btoa(data)
-        a.download = 'image.json'
-        document.body.appendChild(a)
-        a.click()
-        document.body.removeChild(a)
+        let url = 'data:application/json;base64,' + btoa(data)
+        force_download(url,'image.json')
     }
 
 }

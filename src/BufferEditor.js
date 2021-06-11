@@ -5,6 +5,7 @@ import {BufferRenderer} from './BufferRenderer.js'
 import {
     Dialog, HBox, Spacer, VBox, PopupContainer, PopupManager, PopupManagerContext
 } from 'appy-comps'
+import {readMetadata} from './vendor'
 
 function zoom_to_scale(zoom) {
     return Math.pow(1.5, zoom)
@@ -40,6 +41,35 @@ function ToggleButton({selected, children, ...rest}) {
     return <button className={selected?"selected":"unselected"} {...rest}>{children}</button>
 }
 
+function UploadButton({onUpload}) {
+    return <input type={'file'} onChange={(e)=>{
+        if(!e.target.files || e.target.files.length < 1) return
+        let file = e.target.files[0]
+        // console.log("changed",file, file.type)
+        if(file.type === "image/png") {
+            const reader = new FileReader();
+            reader.addEventListener('load', () => {
+                let buffer2 = new Uint8Array(reader.result);
+                let metadata = readMetadata(buffer2)
+                console.log("metadata is", metadata)
+                if(metadata && metadata.tEXt && metadata.tEXt.SOURCE) {
+                    let json = JSON.parse(metadata.tEXt.SOURCE)
+                    onUpload(json)
+                }
+            })
+            reader.readAsArrayBuffer(file)
+        }
+        if(file.type === 'application/json') {
+            const reader = new FileReader();
+            reader.addEventListener('load', (e) => {
+                onUpload(JSON.parse(reader.result))
+            })
+            reader.readAsText(file)
+        }
+    }
+    }/>
+}
+
 export const BufferEditor = ({width, height, initialZoom}) => {
     const pm = useContext(PopupManagerContext)
     let ref = useRef()
@@ -53,6 +83,7 @@ export const BufferEditor = ({width, height, initialZoom}) => {
     let [draw_gradient, set_draw_gradient] = useState(true)
     let [dragging, set_dragging] = useState(false)
     let [resize_shown, set_resize_shown] = useState(false)
+    let [upload_shown, set_upload_shown] = useState(false)
 
     function to_point(e) {
         let off = e.target.getBoundingClientRect()
@@ -101,6 +132,10 @@ export const BufferEditor = ({width, height, initialZoom}) => {
         set_resize_shown(true)
     }
 
+    function show_upload() {
+        set_upload_shown(true)
+    }
+
     useEffect(() => {
         let scale = zoom_to_scale(zoom)
         if (ref.current) renderer.render(ref.current, buffer, scale, {
@@ -114,8 +149,13 @@ export const BufferEditor = ({width, height, initialZoom}) => {
         renderer.export_png(buffer,scale,{
             draw_grid:false,
             draw_gradient:draw_gradient,
-        })
+        }).then(()=>console.log("done exporting"))
     }
+
+    function json_uploaded(json) {
+        set_buffer(buffer.clone_from_json(json))
+    }
+
     return <HBox>
         <VBox>
             <ColorPickerButton color={buffer.fgcolor}
@@ -157,6 +197,7 @@ export const BufferEditor = ({width, height, initialZoom}) => {
             <button onClick={() => set_zoom(zoom - 1)}>zoom&nbsp;out</button>
             <ToggleButton selected={draw_grid} onClick={() => set_draw_grid(!draw_grid)}>grid</ToggleButton>
             <ToggleButton selected={draw_gradient} onClick={()=>set_draw_gradient(!draw_gradient)}>gradient</ToggleButton>
+            <button onClick={() => show_upload()}>upload</button>
         </VBox>
 
         <Dialog visible={resize_shown}>
@@ -164,6 +205,10 @@ export const BufferEditor = ({width, height, initialZoom}) => {
                 set_buffer(buffer)
                 set_resize_shown(false)
             }}/>
+        </Dialog>
+        <Dialog visible={upload_shown}>
+            <UploadButton onUpload={json_uploaded}/>
+            <button onClick={()=>{set_upload_shown(false)}}>dismiss</button>
         </Dialog>
         <PopupContainer/>
 
