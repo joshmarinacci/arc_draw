@@ -28,3 +28,11 @@ button.selected {
   background: black;
   color: white;
 }
+
+
+.scroll-area {
+  border: 1px solid black;
+  max-width: 80vw;
+  max-height: 90vh;
+  overflow: scroll;
+}

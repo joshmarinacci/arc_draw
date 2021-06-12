@@ -123,7 +123,7 @@ export class BufferRenderer {
         let fggrad = make_gradient(ctx,buffer.width, buffer.height, buffer.fgcolor, buffer.fgeffect, scale)
         draw_gradient_layer(ctx,buffer,buffer.width,buffer.height,fggrad,scale)
         if (settings.draw_grid) draw_grid_layer(buffer, ctx, scale)
-        draw_border_layer(buffer, ctx, scale)
+        // draw_border_layer(buffer, ctx, scale)
     }
 
     async export_png(buffer,scale,settings) {

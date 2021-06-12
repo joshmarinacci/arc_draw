@@ -90,7 +90,7 @@ function GradientSelector({effect, onChange}) {
     </VBox>
 }
 
-export const BufferEditor = ({width, height, initialZoom}) => {
+export const BufferEditor = ({initialZoom}) => {
     const pm = useContext(PopupManagerContext)
     let ref = useRef()
     let [buffer, set_buffer] = useState(() => {
@@ -196,14 +196,18 @@ export const BufferEditor = ({width, height, initialZoom}) => {
 
 
         </VBox>
-        <canvas className={"drawing-surface"} ref={ref} width={width} height={height}
-                onMouseDown={handle_down}
-                onMouseMove={handle_move}
-                onMouseUp={handle_up}
-                onTouchStart={handle_touchstart}
-                onTouchMove={handle_touchmove}
-                onTouchEnd={handle_touchend}
-        />
+        <div className={"scroll-area"}>
+            <canvas className={"drawing-surface"} ref={ref}
+                    width={buffer.width*zoom_to_scale(zoom)}
+                    height={buffer.height*zoom_to_scale(zoom)}
+                    onMouseDown={handle_down}
+                    onMouseMove={handle_move}
+                    onMouseUp={handle_up}
+                    onTouchStart={handle_touchstart}
+                    onTouchMove={handle_touchmove}
+                    onTouchEnd={handle_touchend}
+            />
+        </div>
         <VBox>
             <button onClick={(e)=>{
                 pm.show(<VBox>
