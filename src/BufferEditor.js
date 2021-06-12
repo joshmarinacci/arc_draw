@@ -70,6 +70,26 @@ function UploadButton({onUpload}) {
     }/>
 }
 
+function GradientSelector({effect, onChange}) {
+    const update = () => {
+        onChange({
+            ...effect,
+            angle:(effect.angle+45)%360,
+        })
+    }
+    const update_slider = (e) => {
+        console.log(e.target.value)
+        onChange({
+            ...effect,
+            spread:e.target.value/100,
+        })
+    }
+    return <VBox>
+        <button onClick={update}>{effect.angle}</button>
+        <input type="range" value={effect.spread*100} onChange={update_slider} min={0} max={100}/>
+    </VBox>
+}
+
 export const BufferEditor = ({width, height, initialZoom}) => {
     const pm = useContext(PopupManagerContext)
     let ref = useRef()
@@ -80,7 +100,6 @@ export const BufferEditor = ({width, height, initialZoom}) => {
     })
     let [zoom, set_zoom] = useState(initialZoom)
     let [draw_grid, set_draw_grid] = useState(false)
-    let [draw_gradient, set_draw_gradient] = useState(true)
     let [dragging, set_dragging] = useState(false)
     let [resize_shown, set_resize_shown] = useState(false)
     let [upload_shown, set_upload_shown] = useState(false)
@@ -140,15 +159,13 @@ export const BufferEditor = ({width, height, initialZoom}) => {
         let scale = zoom_to_scale(zoom)
         if (ref.current) renderer.render(ref.current, buffer, scale, {
             draw_grid:draw_grid,
-            draw_gradient:draw_gradient
         })
-    }, [ref, buffer, zoom, draw_grid, draw_gradient])
+    }, [ref, buffer, zoom, draw_grid])
 
     function export_png_scaled(scale) {
         pm.hide()
         renderer.export_png(buffer,scale,{
             draw_grid:false,
-            draw_gradient:draw_gradient,
         }).then(()=>console.log("done exporting"))
     }
 
@@ -160,8 +177,12 @@ export const BufferEditor = ({width, height, initialZoom}) => {
         <VBox>
             <ColorPickerButton color={buffer.fgcolor}
                                onChange={(c) => set_buffer(buffer.set_fg_color(c.hsl))}/>
+            <GradientSelector effect={buffer.fgeffect}
+                              onChange={e => set_buffer(buffer.set_fg_effect(e))}/>
             <ColorPickerButton color={buffer.bgcolor}
                                onChange={(c) => set_buffer(buffer.set_bg_color(c.hsl))}/>
+            <GradientSelector effect={buffer.bgeffect}
+                              onChange={e => set_buffer(buffer.set_bg_effect(e))}/>
             <button onClick={() => set_buffer(buffer.invert())}>invert</button>
             <Spacer/>
             <button onClick={() => set_buffer(buffer.shift(0, 1))}>shift down</button>
@@ -196,7 +217,7 @@ export const BufferEditor = ({width, height, initialZoom}) => {
             <button onClick={() => set_zoom(zoom + 1)}>zoom&nbsp;in</button>
             <button onClick={() => set_zoom(zoom - 1)}>zoom&nbsp;out</button>
             <ToggleButton selected={draw_grid} onClick={() => set_draw_grid(!draw_grid)}>grid</ToggleButton>
-            <ToggleButton selected={draw_gradient} onClick={()=>set_draw_gradient(!draw_gradient)}>gradient</ToggleButton>
+            {/*<ToggleButton selected={draw_gradient} onClick={()=>set_draw_gradient(!draw_gradient)}>gradient</ToggleButton>*/}
             <button onClick={() => show_upload()}>upload</button>
         </VBox>
 

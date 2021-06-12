@@ -17,9 +17,9 @@ const draw_grid_layer = (buffer, c, scale) => {
     }
     c.stroke()
 }
-const draw_background_layer = (buffer, c, scale) => {
-    c.fillStyle = hsl_to_css(buffer.bgcolor)
-    c.fillRect(0, 0, buffer.width * scale, buffer.height * scale)
+const draw_background_layer = (ctx, width, height, gradient, scale) => {
+    ctx.fillStyle = gradient
+    ctx.fillRect(0, 0, width * scale, height * scale)
 }
 const draw_border_layer = (buffer, c, scale) => {
     c.strokeStyle = 'black'
@@ -65,21 +65,49 @@ const draw_pixel = (buffer, c, x, y, v, scale) => {
         c.lineTo(x * scale, y * scale + scale)
     }
 }
-const draw_gradient_layer = (buffer, c,scale) => {
-    let gradient = c.createLinearGradient(0,  buffer.height*scale,buffer.width*scale,0);
-    gradient.addColorStop(0, hsl_to_css(adjust_hue(buffer.fgcolor,-45)));
-    gradient.addColorStop(.5, hsl_to_css(adjust_hue(buffer.fgcolor,0)));
-    gradient.addColorStop(1, hsl_to_css(adjust_hue(buffer.fgcolor,+45)));
 
+const ANGLES = {
+    0:[0,0,0,1],
+    45:[0,0,1,1],
+    90:[0,0,1,0],
+    135:[0,1,1,0],
+
+    180:[0,1,0,0],
+    225:[1,1,0,0],
+
+    270:[1,0,0,0],
+    315:[1,0,0,1],
+}
+
+const draw_gradient_layer = (c,buffer,width,height,gradient,scale) => {
     c.fillStyle = gradient
     c.beginPath()
-    for (let x = 0; x < buffer.width; x++) {
-        for (let y = 0; y < buffer.height; y++) {
+    for (let x = 0; x < width; x++) {
+        for (let y = 0; y < height; y++) {
             let v = buffer.getPixel({x: x, y: y})
             if(v > 0) draw_pixel(buffer,c,x,y,v,scale)
         }
     }
     c.fill()
+}
+
+function make_gradient(ctx, width, height, color, effect, scale) {
+    let gradient = ctx.createLinearGradient(0,  height*scale,width*scale,0);
+    if(ANGLES[effect.angle]) {
+        let vals = ANGLES[effect.angle]
+        let w = width*scale
+        let h = height*scale
+        gradient = ctx.createLinearGradient(vals[0]*w,vals[1]*h,vals[2]*w,vals[3]*h)
+    }
+
+    let COUNT = 8
+    let a_inc = 180/(COUNT/2)
+    for(let i=0; i<=COUNT; i++) {
+        let j= i-(COUNT/2)
+        let a = j*a_inc * effect.spread
+        gradient.addColorStop(i/COUNT, hsl_to_css(adjust_hue(color,a)));
+    }
+    return gradient
 }
 
 export class BufferRenderer {
@@ -90,12 +118,10 @@ export class BufferRenderer {
         let ctx = canvas.getContext('2d')
         ctx.fillStyle = 'white'
         ctx.fillRect(0, 0, canvas.width, canvas.height)
-        draw_background_layer(buffer, ctx, scale)
-        if(settings.draw_gradient) {
-            draw_gradient_layer(buffer, ctx, scale)
-        } else {
-            draw_pixel_layer(buffer, ctx, scale, draw_pixel)
-        }
+        let bggrad = make_gradient(ctx,buffer.width, buffer.height, buffer.bgcolor, buffer.bgeffect, scale)
+        draw_background_layer(ctx,buffer.width,buffer.height,bggrad,scale)
+        let fggrad = make_gradient(ctx,buffer.width, buffer.height, buffer.fgcolor, buffer.fgeffect, scale)
+        draw_gradient_layer(ctx,buffer,buffer.width,buffer.height,fggrad,scale)
         if (settings.draw_grid) draw_grid_layer(buffer, ctx, scale)
         draw_border_layer(buffer, ctx, scale)
     }

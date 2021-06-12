@@ -4,6 +4,7 @@ const LATEST_BUFFER_KEY = "LATEST_BUFFER_KEY"
 
 export class Buffer {
     constructor(w, h) {
+        this.version = 1
         this.width = w
         this.height = h
         this.data = new Array(w * h)
@@ -13,10 +14,18 @@ export class Buffer {
             s: 0.5,
             l: 0.5
         }
+        this.fgeffect = {
+            spread:0,
+            angle:0,
+        }
         this.bgcolor = {
             h: 0.2,
             s: 0.0,
             l: 1.0
+        }
+        this.bgeffect = {
+            spread:0,
+            angle:0,
         }
     }
 
@@ -40,8 +49,10 @@ export class Buffer {
     clone() {
         let buf = new Buffer(this.width, this.height)
         buf.data = this.data
-        buf.fgcolor = this.fgcolor
-        buf.bgcolor = this.bgcolor
+        buf.fgcolor = {...this.fgcolor}
+        buf.bgcolor = {...this.bgcolor}
+        buf.fgeffect = {...this.fgeffect}
+        buf.bgeffect = {...this.bgeffect}
         buf.persist()
         return buf
     }
@@ -51,9 +62,16 @@ export class Buffer {
         try {
             if (res) {
                 let obj = JSON.parse(res)
-                this.width = obj.width
-                this.height = obj.height
-                this.data = obj.data
+                console.log("got it",obj)
+                let buf = this.clone_from_json(obj)
+                this.width = buf.width
+                this.height = buf.height
+                this.data = buf.data
+                this.fgcolor = {...buf.fgcolor}
+                this.fgeffect = {...buf.fgeffect}
+                this.bgcolor = buf.bgcolor
+                this.bgeffect = buf.bgeffect
+                console.log("now we are",this)
             }
         } catch (e) {
             console.log(e)
@@ -68,14 +86,33 @@ export class Buffer {
     set_fg_color(c) {
         let buf = this.clone()
         buf.fgcolor = c
+        buf.persist()
         return buf
     }
+
+
+    set_fg_effect(effect) {
+        let buf = this.clone()
+        buf.fgeffect = {...effect}
+        buf.persist()
+        return buf
+    }
+
 
     set_bg_color(c) {
         let buf = this.clone()
         buf.bgcolor = c
+        buf.persist()
         return buf
     }
+
+    set_bg_effect(effect) {
+        let buf = this.clone()
+        buf.bgeffect = {...effect}
+        buf.persist()
+        return buf
+    }
+
 
     invert() {
         let data = this.data.slice()
@@ -98,7 +135,9 @@ export class Buffer {
         }
         let buf = new Buffer(this.width, this.height)
         buf.fgcolor = this.fgcolor
+        buf.fgeffect = {...this.fgeffect}
         buf.bgcolor = this.bgcolor
+        buf.bgeffect = {...this.bgeffect}
         buf.data = data
         return buf
     }
@@ -123,7 +162,9 @@ export class Buffer {
         }
         let buf = new Buffer(this.width, this.height)
         buf.fgcolor = this.fgcolor
+        buf.fgeffect = {...this.fgeffect}
         buf.bgcolor = this.bgcolor
+        buf.bgeffect = {...this.bgeffect}
         buf.data = data
         buf.persist()
         return buf
@@ -132,20 +173,33 @@ export class Buffer {
     resize(w,h) {
         let buf = new Buffer(w,h)
         buf.fgcolor = this.fgcolor
+        buf.fgeffect = {...this.fgeffect}
         buf.bgcolor = this.bgcolor
+        buf.bgeffect = {...this.bgeffect}
         return buf
     }
 
     persist() {
+        console.log("saving")
         localStorage.setItem(LATEST_BUFFER_KEY, JSON.stringify(this))
     }
 
 
     clone_from_json(json) {
+        if(!json.version) {
+            json.version = 0
+        }
+        if(json.version === 0) {
+            json.fgeffect = {spread:0,angle:0}
+            json.bgeffect = {spread:0,angle:0}
+            json.version++
+        }
         let buf = new Buffer(json.width,json.height)
         buf.data = json.data
         if(json.fgcolor) buf.fgcolor = json.fgcolor
         if(json.bgcolor) buf.bgcolor = json.bgcolor
+        if(json.fgeffect) buf.fgeffect = json.fgeffect
+        if(json.bgeffect) buf.bgeffect = json.bgeffect
         return buf
     }
 }
