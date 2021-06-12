@@ -95,7 +95,7 @@ export const BufferEditor = ({width, height, initialZoom}) => {
     let ref = useRef()
     let [buffer, set_buffer] = useState(() => {
         let buf = new Buffer(16, 16)
-        buf.restore()
+        buf = buf.restore()
         return buf
     })
     let [zoom, set_zoom] = useState(initialZoom)

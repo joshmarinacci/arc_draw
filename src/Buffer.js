@@ -62,19 +62,11 @@ export class Buffer {
         try {
             if (res) {
                 let obj = JSON.parse(res)
-                console.log("got it",obj)
-                let buf = this.clone_from_json(obj)
-                this.width = buf.width
-                this.height = buf.height
-                this.data = buf.data
-                this.fgcolor = {...buf.fgcolor}
-                this.fgeffect = {...buf.fgeffect}
-                this.bgcolor = buf.bgcolor
-                this.bgeffect = buf.bgeffect
-                console.log("now we are",this)
+                return this.clone_from_json(obj)
             }
         } catch (e) {
             console.log(e)
+            return this
         }
     }
 
@@ -180,7 +172,6 @@ export class Buffer {
     }
 
     persist() {
-        console.log("saving")
         localStorage.setItem(LATEST_BUFFER_KEY, JSON.stringify(this))
     }
 
