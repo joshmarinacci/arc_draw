@@ -100,9 +100,14 @@ export const BufferEditor = ({initialZoom}) => {
     })
     let [zoom, set_zoom] = useState(initialZoom)
     let [draw_grid, set_draw_grid] = useState(false)
+    let [draw_vignette, set_draw_vignette] = useState(true)
     let [dragging, set_dragging] = useState(false)
     let [resize_shown, set_resize_shown] = useState(false)
     let [upload_shown, set_upload_shown] = useState(false)
+    let [vor, set_vor] = useState(1.0)
+    let [vir, set_vir] = useState(0.5)
+    let [v2_strength, set_v2_strength] = useState(0)
+    let [v2_alpha, set_v2_alpha] = useState(0)
 
     function to_point(e) {
         let off = e.target.getBoundingClientRect()
@@ -159,8 +164,19 @@ export const BufferEditor = ({initialZoom}) => {
         let scale = zoom_to_scale(zoom)
         if (ref.current) renderer.render(ref.current, buffer, scale, {
             draw_grid:draw_grid,
+            vignette: {
+                visible:draw_vignette,
+                outer_radius:vor,
+                inner_radius:vir,
+                strength:1.0,
+                spread:1.0,
+            },
+            v2:{
+                radius:v2_strength,
+                alpha:v2_alpha,
+            }
         })
-    }, [ref, buffer, zoom, draw_grid])
+    }, [ref, buffer, zoom, draw_grid, draw_vignette, vor, vir, v2_strength, v2_alpha])
 
     function export_png_scaled(scale) {
         pm.hide()
@@ -221,7 +237,11 @@ export const BufferEditor = ({initialZoom}) => {
             <button onClick={() => set_zoom(zoom + 1)}>zoom&nbsp;in</button>
             <button onClick={() => set_zoom(zoom - 1)}>zoom&nbsp;out</button>
             <ToggleButton selected={draw_grid} onClick={() => set_draw_grid(!draw_grid)}>grid</ToggleButton>
-            {/*<ToggleButton selected={draw_gradient} onClick={()=>set_draw_gradient(!draw_gradient)}>gradient</ToggleButton>*/}
+            <ToggleButton selected={draw_vignette} onClick={()=>set_draw_vignette(!draw_vignette)}>vignette</ToggleButton>
+            {/*<input type={'range'} min={0} max={200} value={vor*100} onChange={(e)=>set_vor(e.target.value/100)}/>*/}
+            {/*<input type={'range'} min={0} max={200} value={vir*100} onChange={(e)=>set_vir(e.target.value/100)}/>*/}
+            <input type={'range'} min={0} max={100} value={v2_strength} onChange={(e)=>set_v2_strength(e.target.value)}/>
+            <input type={'range'} min={0} max={100} value={v2_alpha} onChange={(e)=>set_v2_alpha(e.target.value)}/>
             <button onClick={() => show_upload()}>upload</button>
         </VBox>
 

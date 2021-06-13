@@ -110,6 +110,81 @@ function make_gradient(ctx, width, height, color, effect, scale) {
     return gradient
 }
 
+function draw_vignette_layer(ctx, buffer, scale, settings) {
+    if(!settings.vignette.visible) return
+
+    let cx = buffer.width*scale/2
+    let cy = buffer.height*scale/2
+    let r1 = cx*settings.vignette.outer_radius
+    let r2 = cx*settings.vignette.inner_radius
+    // console.log(r1,r2)
+    let grad = ctx.createRadialGradient(cx,cy,r1,cx,cy,r2)
+    grad.addColorStop(0,'rgba(0,0,0,1.0)')
+    grad.addColorStop(1.0,'rgba(0,0,0,0.0)')
+    ctx.fillStyle = grad
+    ctx.fillRect(0,0,buffer.width*scale,buffer.height*scale)
+}
+
+function filter_image(id, cb) {
+    for(let x=0; x<id.width; x++) {
+        for(let y=0; y<id.height; y++) {
+            let n = (y*id.width+x)*4
+            cb(x,y,n,id)
+        }
+    }
+}
+
+let old_canvas = null
+function draw_v2_layer(ctx,buffer,scale,settings) {
+    let w = Math.floor(buffer.width*scale)
+    let h = Math.floor(buffer.height*scale)
+    if(!old_canvas
+        || old_canvas.width !== w
+        || old_canvas.height !== h
+        || !old_canvas.settings
+        || old_canvas.settings.radius != settings.v2.radius
+    ) {
+        old_canvas = generate_overlay(buffer,scale,settings)
+    }
+    ctx.save()
+    ctx.globalAlpha = settings.v2.alpha/100
+    ctx.drawImage(old_canvas,0,0,w,h)
+    ctx.restore()
+}
+
+function generate_overlay(buffer,scale,settings) {
+    let canvas = document.createElement('canvas')
+    canvas.width = Math.floor(buffer.width*scale)
+    canvas.height = Math.floor(buffer.height*scale)
+    canvas.settings = {}
+    canvas.settings.radius = settings.v2.radius
+    let ctx = canvas.getContext('2d')
+    let rad = settings.v2.radius
+    let old_id = ctx.getImageData(0,0,canvas.width,canvas.height)
+    filter_image(old_id,(x,y,n,id)=>{
+        function clamp(min,val,max) {
+            let v = val
+            if(val < min) v = min
+            if(val > max) v = max
+            // return Math.pow(v,Math.random()/2+0.5)
+            return v
+        }
+        let s1 = clamp(0,x/rad,1)
+        let s2 = clamp(0,y/rad,1)
+        let s3 = clamp(0,(canvas.width-x)/rad,1)
+        let s4 = clamp(0,(canvas.height-y)/rad,1)
+        let s = Math.min(s1,s2,s3,s4)
+        s = Math.pow(s,Math.random()/4+0.5)
+
+        id.data[n+0] = 0
+        id.data[n+1] = 0
+        id.data[n+2] = 0
+        id.data[n+3] = 255*(1-s)
+    })
+    ctx.putImageData(old_id,0,0)
+    return canvas
+}
+
 export class BufferRenderer {
     constructor() {
     }
@@ -122,6 +197,8 @@ export class BufferRenderer {
         draw_background_layer(ctx,buffer.width,buffer.height,bggrad,scale)
         let fggrad = make_gradient(ctx,buffer.width, buffer.height, buffer.fgcolor, buffer.fgeffect, scale)
         draw_gradient_layer(ctx,buffer,buffer.width,buffer.height,fggrad,scale)
+        // draw_vignette_layer(ctx,buffer,scale,settings)
+        draw_v2_layer(ctx,buffer,scale,settings)
         if (settings.draw_grid) draw_grid_layer(buffer, ctx, scale)
         // draw_border_layer(buffer, ctx, scale)
     }
