@@ -164,14 +164,8 @@ export const BufferEditor = ({initialZoom}) => {
         let scale = zoom_to_scale(zoom)
         if (ref.current) renderer.render(ref.current, buffer, scale, {
             draw_grid:draw_grid,
-            vignette: {
-                visible:draw_vignette,
-                outer_radius:vor,
-                inner_radius:vir,
-                strength:1.0,
-                spread:1.0,
-            },
             v2:{
+                visible:draw_vignette,
                 radius:v2_strength,
                 alpha:v2_alpha,
             }
@@ -182,6 +176,11 @@ export const BufferEditor = ({initialZoom}) => {
         pm.hide()
         renderer.export_png(buffer,scale,{
             draw_grid:false,
+            v2:{
+                visible:draw_vignette,
+                radius:v2_strength,
+                alpha:v2_alpha,
+            }
         }).then(()=>console.log("done exporting"))
     }
 
@@ -238,9 +237,7 @@ export const BufferEditor = ({initialZoom}) => {
             <button onClick={() => set_zoom(zoom - 1)}>zoom&nbsp;out</button>
             <ToggleButton selected={draw_grid} onClick={() => set_draw_grid(!draw_grid)}>grid</ToggleButton>
             <ToggleButton selected={draw_vignette} onClick={()=>set_draw_vignette(!draw_vignette)}>vignette</ToggleButton>
-            {/*<input type={'range'} min={0} max={200} value={vor*100} onChange={(e)=>set_vor(e.target.value/100)}/>*/}
-            {/*<input type={'range'} min={0} max={200} value={vir*100} onChange={(e)=>set_vir(e.target.value/100)}/>*/}
-            <input type={'range'} min={0} max={100} value={v2_strength} onChange={(e)=>set_v2_strength(e.target.value)}/>
+            <input type={'range'} min={0} max={200} value={v2_strength} onChange={(e)=>set_v2_strength(e.target.value)}/>
             <input type={'range'} min={0} max={100} value={v2_alpha} onChange={(e)=>set_v2_alpha(e.target.value)}/>
             <button onClick={() => show_upload()}>upload</button>
         </VBox>

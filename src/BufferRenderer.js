@@ -146,10 +146,12 @@ function draw_v2_layer(ctx,buffer,scale,settings) {
     ) {
         old_canvas = generate_overlay(buffer,scale,settings)
     }
-    ctx.save()
-    ctx.globalAlpha = settings.v2.alpha/100
-    ctx.drawImage(old_canvas,0,0,w,h)
-    ctx.restore()
+    if(settings.v2.visible) {
+        ctx.save()
+        ctx.globalAlpha = settings.v2.alpha / 100
+        ctx.drawImage(old_canvas, 0, 0, w, h)
+        ctx.restore()
+    }
 }
 
 function generate_overlay(buffer,scale,settings) {
@@ -166,7 +168,6 @@ function generate_overlay(buffer,scale,settings) {
             let v = val
             if(val < min) v = min
             if(val > max) v = max
-            // return Math.pow(v,Math.random()/2+0.5)
             return v
         }
         let s1 = clamp(0,x/rad,1)
@@ -174,7 +175,7 @@ function generate_overlay(buffer,scale,settings) {
         let s3 = clamp(0,(canvas.width-x)/rad,1)
         let s4 = clamp(0,(canvas.height-y)/rad,1)
         let s = Math.min(s1,s2,s3,s4)
-        s = Math.pow(s,Math.random()/4+0.5)
+        s = Math.pow(s,Math.random()/4+0.25)
 
         id.data[n+0] = 0
         id.data[n+1] = 0
