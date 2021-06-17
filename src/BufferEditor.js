@@ -199,16 +199,30 @@ export const BufferEditor = ({initialZoom}) => {
             <GradientSelector effect={buffer.bgeffect}
                               onChange={e => set_buffer(buffer.set_bg_effect(e))}/>
             <button onClick={() => set_buffer(buffer.invert())}>invert</button>
-            <Spacer/>
             <button onClick={() => set_buffer(buffer.shift(0, 1))}>shift down</button>
             <button onClick={() => set_buffer(buffer.shift(0, -1))}>shift up</button>
             <button onClick={() => set_buffer(buffer.shift(-1, 0))}>shift left</button>
             <button onClick={() => set_buffer(buffer.shift(1, 0))}>shift right</button>
-            <Spacer/>
             <button onClick={() => set_buffer(buffer.clear())}>clear</button>
             <button onClick={() => show_resize()}>resize</button>
-            <Spacer/>
 
+            <button onClick={(e)=>{
+                pm.show(<VBox>
+                    <button onClick={()=>export_png_scaled(25)}>png 25x</button>
+                    <button onClick={()=>export_png_scaled(30)}>png 30x</button>
+                    <button onClick={()=>export_png_scaled(50)}>png 50x</button>
+                    <button onClick={()=>export_png_scaled(100)}>png 100x</button>
+                    <button onClick={() => renderer.export_json(buffer)}>export JSON</button>
+                </VBox>,e.target)
+            }}>export</button>
+            <button onClick={() => set_zoom(zoom + 1)}>zoom&nbsp;in</button>
+            <label>{zoom_to_scale(zoom)}</label>
+            <button onClick={() => set_zoom(zoom - 1)}>zoom&nbsp;out</button>
+            <ToggleButton selected={draw_grid} onClick={() => set_draw_grid(!draw_grid)}>grid</ToggleButton>
+            <ToggleButton selected={draw_vignette} onClick={()=>set_draw_vignette(!draw_vignette)}>vignette</ToggleButton>
+            <input type={'range'} min={0} max={50} value={v2_strength} onChange={(e)=>set_v2_strength(e.target.value)}/>
+            <input type={'range'} min={0} max={100} value={v2_alpha} onChange={(e)=>set_v2_alpha(e.target.value)}/>
+            <button onClick={() => show_upload()}>upload</button>
 
         </VBox>
         <div className={"scroll-area"}>
@@ -224,22 +238,6 @@ export const BufferEditor = ({initialZoom}) => {
             />
         </div>
         <VBox>
-            <button onClick={(e)=>{
-                pm.show(<VBox>
-                    <button onClick={()=>export_png_scaled(25)}>png 25x</button>
-                    <button onClick={()=>export_png_scaled(30)}>png 30x</button>
-                    <button onClick={()=>export_png_scaled(50)}>png 50x</button>
-                    <button onClick={()=>export_png_scaled(100)}>png 100x</button>
-                    <button onClick={() => renderer.export_json(buffer)}>export JSON</button>
-                </VBox>,e.target)
-            }}>export</button>
-            <button onClick={() => set_zoom(zoom + 1)}>zoom&nbsp;in</button>
-            <button onClick={() => set_zoom(zoom - 1)}>zoom&nbsp;out</button>
-            <ToggleButton selected={draw_grid} onClick={() => set_draw_grid(!draw_grid)}>grid</ToggleButton>
-            <ToggleButton selected={draw_vignette} onClick={()=>set_draw_vignette(!draw_vignette)}>vignette</ToggleButton>
-            <input type={'range'} min={0} max={200} value={v2_strength} onChange={(e)=>set_v2_strength(e.target.value)}/>
-            <input type={'range'} min={0} max={100} value={v2_alpha} onChange={(e)=>set_v2_alpha(e.target.value)}/>
-            <button onClick={() => show_upload()}>upload</button>
         </VBox>
 
         <Dialog visible={resize_shown}>

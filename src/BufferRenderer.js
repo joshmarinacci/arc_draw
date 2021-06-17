@@ -156,8 +156,8 @@ function draw_v2_layer(ctx,buffer,scale,settings) {
 
 function generate_overlay(buffer,scale,settings) {
     let canvas = document.createElement('canvas')
-    canvas.width = Math.floor(buffer.width*scale)
-    canvas.height = Math.floor(buffer.height*scale)
+    canvas.width = Math.floor(buffer.width*15)
+    canvas.height = Math.floor(buffer.height*15)
     canvas.settings = {}
     canvas.settings.radius = settings.v2.radius
     let ctx = canvas.getContext('2d')
