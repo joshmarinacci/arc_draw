@@ -68,6 +68,7 @@ export class Buffer {
             console.log(e)
             return this
         }
+        return this
     }
 
     clear() {
