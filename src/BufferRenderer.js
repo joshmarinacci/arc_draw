@@ -1,6 +1,7 @@
 import {adjust_hue, hsl_to_css} from './ColorPickerButton.js'
 import {readMetadata, writeMetadata} from "./vendor/index.js"
-import {buffer_to_dataurl, canvas_to_blob, force_download} from './util.js'
+import {canvas_to_blob, forceDownloadBlob, obj_to_blob} from "josh_web_util"
+import {bufferToBlob} from './util.js'
 
 
 const draw_grid_layer = (buffer, c, scale) => {
@@ -218,14 +219,13 @@ export class BufferRenderer {
                 SOURCE:json,
             }
         })
-        let url = buffer_to_dataurl(out_buffer,"image/png")
-        force_download(url,"image.png")
+        let blb = bufferToBlob(out_buffer,"image/png")
+        forceDownloadBlob('image.png',blb)
     }
 
-    export_json(buffer) {
-        let data = JSON.stringify(buffer)
-        let url = 'data:application/json;base64,' + btoa(data)
-        force_download(url,'image.json')
+    async export_json(buffer) {
+        let blob = await obj_to_blob(buffer)
+        forceDownloadBlob('image.json', blob)
     }
 
 }

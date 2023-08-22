@@ -3,15 +3,13 @@
   "version": "0.1.0",
   "private": true,
   "dependencies": {
-    "@testing-library/jest-dom": "^5.13.0",
-    "@testing-library/react": "^11.2.7",
-    "@testing-library/user-event": "^12.8.3",
-    "appy-comps": "^0.3.1",
-    "react": "^17.0.2",
+    "josh_js_util": "^0.1.16",
+    "josh_react_util": "^1.0.23",
+    "josh_web_util": "^0.0.5",
+    "react": "^18.2.0",
     "react-color": "^2.19.3",
-    "react-dom": "^17.0.2",
-    "react-scripts": "5.0.1",
-    "web-vitals": "^1.1.2"
+    "react-dom": "^18.2.0",
+    "react-scripts": "5.0.1"
   },
   "scripts": {
     "start": "react-scripts start",

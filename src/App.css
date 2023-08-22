@@ -36,3 +36,12 @@ button.selected {
   max-height: 90vh;
   overflow: scroll;
 }
+
+
+
+
+
+.dialog {
+  display: flex;
+  flex-direction: column;
+}

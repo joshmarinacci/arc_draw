@@ -2,10 +2,9 @@ import {useContext, useEffect, useRef, useState} from 'react'
 import {Buffer} from './Buffer.js'
 import {ColorPickerButton} from './ColorPickerButton.js'
 import {BufferRenderer} from './BufferRenderer.js'
-import {
-    Dialog, HBox, Spacer, VBox, PopupContainer, PopupManager, PopupManagerContext
-} from 'appy-comps'
 import {readMetadata} from './vendor'
+import {DialogContext, HBox, PopupContext, Spacer, VBox} from 'josh_react_util'
+import {IconButton} from './common.js'
 
 function zoom_to_scale(zoom) {
     return Math.pow(1.5, zoom)
@@ -13,32 +12,44 @@ function zoom_to_scale(zoom) {
 
 let renderer = new BufferRenderer()
 
+
 function ResizeDialog({onCancel, onOkay, buffer}) {
     const [w, sw] = useState(buffer.width)
     const [h, sh] = useState(buffer.height)
-    return <div>
-        <p>do you want to save the document?</p>
-        <HBox>
-            <form>
+    return <div className={'dialog'}>
+        <header>do you want to save the document?</header>
+        <section>
+            <HBox>
                 <label>width</label>
                 <input type="number" value={w} onChange={(e)=>{
                     sw(parseInt(e.target.value))
                 }}/>
+            </HBox>
+            <HBox>
                 <label>height</label>
                 <input type="number" value={h} onChange={(e)=>{
                     sh(parseInt(e.target.value))
                 }}/>
-            </form>
-            <button onClick={onCancel}>cancel</button>
-            <button onClick={()=>{
-                onOkay(buffer.resize(w,h))
-            }}>resize</button>
-        </HBox>
+            </HBox>
+        </section>
+            <footer>
+                <Spacer/>
+                <button onClick={onCancel}>cancel</button>
+                <button onClick={()=>{
+                    onOkay(buffer.resize(w,h))
+                }}>resize</button>
+            </footer>
     </div>
 }
 
 function ToggleButton({selected, children, ...rest}) {
     return <button className={selected?"selected":"unselected"} {...rest}>{children}</button>
+}
+
+function ToggleIconButton({selected, icon, children, ...rest}) {
+    return <button className={selected?"selected":"unselected"}  {...rest}>
+        <span className="material-symbols-rounded">{icon}</span>
+        {children}</button>
 }
 
 function UploadButton({onUpload}) {
@@ -90,8 +101,20 @@ function GradientSelector({effect, onChange}) {
     </VBox>
 }
 
+function UploadDialog({onUpload}) {
+    return <div className={'dialog'}>
+        <header>Upload JSON</header>
+        <UploadButton onUpload={onUpload}/>
+        <footer>
+            <button>cancel</button>
+        </footer>
+    </div>
+}
+
+
 export const BufferEditor = ({initialZoom}) => {
-    const pm = useContext(PopupManagerContext)
+    const pm = useContext(PopupContext)
+    const dm = useContext(DialogContext)
     let ref = useRef()
     let [buffer, set_buffer] = useState(() => {
         let buf = new Buffer(16, 16)
@@ -102,8 +125,6 @@ export const BufferEditor = ({initialZoom}) => {
     let [draw_grid, set_draw_grid] = useState(false)
     let [draw_vignette, set_draw_vignette] = useState(true)
     let [dragging, set_dragging] = useState(false)
-    let [resize_shown, set_resize_shown] = useState(false)
-    let [upload_shown, set_upload_shown] = useState(false)
     let [vor, set_vor] = useState(1.0)
     let [vir, set_vir] = useState(0.5)
     let [v2_strength, set_v2_strength] = useState(0)
@@ -153,11 +174,16 @@ export const BufferEditor = ({initialZoom}) => {
     }
 
     function show_resize() {
-        set_resize_shown(true)
+        dm.show(<ResizeDialog buffer={buffer} onCancel={()=>dm.hide()} onOkay={(buffer)=>{
+            set_buffer(buffer)
+            dm.hide()
+        }}/>)
     }
 
     function show_upload() {
-        set_upload_shown(true)
+        dm.show(<UploadDialog onUpload={(json)=>{
+            set_buffer(buffer.clone_from_json(json))
+        }}/>)
     }
 
     useEffect(() => {
@@ -184,25 +210,26 @@ export const BufferEditor = ({initialZoom}) => {
         }).then(()=>console.log("done exporting"))
     }
 
-    function json_uploaded(json) {
-        set_buffer(buffer.clone_from_json(json))
-    }
-
     return <HBox>
         <VBox>
+            <h3>Foreground Color</h3>
             <ColorPickerButton color={buffer.fgcolor}
                                onChange={(c) => set_buffer(buffer.set_fg_color(c.hsl))}/>
             <GradientSelector effect={buffer.fgeffect}
                               onChange={e => set_buffer(buffer.set_fg_effect(e))}/>
+            <h3>Background Color</h3>
             <ColorPickerButton color={buffer.bgcolor}
                                onChange={(c) => set_buffer(buffer.set_bg_color(c.hsl))}/>
             <GradientSelector effect={buffer.bgeffect}
                               onChange={e => set_buffer(buffer.set_bg_effect(e))}/>
             <button onClick={() => set_buffer(buffer.invert())}>invert</button>
-            <button onClick={() => set_buffer(buffer.shift(0, 1))}>shift down</button>
-            <button onClick={() => set_buffer(buffer.shift(0, -1))}>shift up</button>
-            <button onClick={() => set_buffer(buffer.shift(-1, 0))}>shift left</button>
-            <button onClick={() => set_buffer(buffer.shift(1, 0))}>shift right</button>
+            <h3>shift</h3>
+            <HBox>
+                <IconButton icon={'arrow_drop_down'} onClick={() => set_buffer(buffer.shift(0, 1))}/>
+                <IconButton icon={'arrow_drop_up'} onClick={() => set_buffer(buffer.shift(0, -1))}/>
+                <IconButton icon={'arrow_left'} onClick={() => set_buffer(buffer.shift(-1, 0))}/>
+                <IconButton icon={'arrow_right'} onClick={() => set_buffer(buffer.shift(1, 0))}/>
+            </HBox>
             <button onClick={() => set_buffer(buffer.clear())}>clear</button>
             <button onClick={() => show_resize()}>resize</button>
 
@@ -215,16 +242,19 @@ export const BufferEditor = ({initialZoom}) => {
                     <button onClick={() => renderer.export_json(buffer)}>export JSON</button>
                 </VBox>,e.target)
             }}>export</button>
-            <button onClick={() => set_zoom(zoom + 1)}>zoom&nbsp;in</button>
-            <label>{zoom_to_scale(zoom)}</label>
-            <button onClick={() => set_zoom(zoom - 1)}>zoom&nbsp;out</button>
-            <ToggleButton selected={draw_grid} onClick={() => set_draw_grid(!draw_grid)}>grid</ToggleButton>
             <ToggleButton selected={draw_vignette} onClick={()=>set_draw_vignette(!draw_vignette)}>vignette</ToggleButton>
             <input type={'range'} min={0} max={50} value={v2_strength} onChange={(e)=>set_v2_strength(e.target.value)}/>
             <input type={'range'} min={0} max={100} value={v2_alpha} onChange={(e)=>set_v2_alpha(e.target.value)}/>
             <button onClick={() => show_upload()}>upload</button>
 
         </VBox>
+        <VBox>
+            <HBox className={'toolbar'}>
+                <IconButton icon={'zoom_in'} onClick={() => set_zoom(zoom + 1)}/>
+                <label>{zoom_to_scale(zoom).toFixed(2)}</label>
+                <IconButton icon={'zoom_out'} onClick={() => set_zoom(zoom - 1)}/>
+                <ToggleIconButton icon={'grid_on'} selected={draw_grid} onClick={() => set_draw_grid(!draw_grid)}/>
+            </HBox>
         <div className={"scroll-area"}>
             <canvas className={"drawing-surface"} ref={ref}
                     width={buffer.width*zoom_to_scale(zoom)}
@@ -237,20 +267,6 @@ export const BufferEditor = ({initialZoom}) => {
                     onTouchEnd={handle_touchend}
             />
         </div>
-        <VBox>
         </VBox>
-
-        <Dialog visible={resize_shown}>
-            <ResizeDialog buffer={buffer} onCancel={()=>set_resize_shown(false)} onOkay={(buffer)=>{
-                set_buffer(buffer)
-                set_resize_shown(false)
-            }}/>
-        </Dialog>
-        <Dialog visible={upload_shown}>
-            <UploadButton onUpload={json_uploaded}/>
-            <button onClick={()=>{set_upload_shown(false)}}>dismiss</button>
-        </Dialog>
-        <PopupContainer/>
-
     </HBox>
 }
