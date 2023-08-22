@@ -40,4 +40,12 @@
       To create a production bundle, use `npm run build` or `yarn build`.
     -->
   </body>
+<script type="module">
+  const data = new FormData()
+  data.set('type','pageload')
+  data.set('url',document.location.toString())
+  data.set('referrer',document.referrer)
+  data.set('userAgent',navigator.userAgent)
+  navigator.sendBeacon('https://stats.josh.earth/event',data)
+</script>
 </html>
